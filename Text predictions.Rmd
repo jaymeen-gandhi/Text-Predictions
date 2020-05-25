@@ -1,0 +1,79 @@
+---
+title: "Text Predictions"
+author: "Jaymeen Gandhi"
+date: "5/25/2020"
+output: word_document
+---
+
+
+```{r}
+require(tidyverse)
+```
+
+
+```{r}
+#install.packages("quanteda")
+```
+
+```{r}
+#install.packages("quanteda.textmodels")
+```
+
+
+```{r}
+require(quanteda.textmodels)
+require(quanteda)
+
+```
+`
+
+
+```{r}
+sms_data = read_csv("C:/Users/jayme/Downloads/sms_data.csv")
+```
+
+
+```{r}
+my_corpus = corpus(sms_data)
+summary(my_corpus)
+head(my_corpus)
+```
+
+
+```{r}
+my_dfm = dfm(my_corpus)
+my_dfm
+```
+
+```{r}
+my_dfm = dfm_weight(my_dfm,scheme = "boolean")
+docvars(my_dfm,field = "type")=sms_data$type
+```
+
+```{r}
+my_dfm$type
+```
+
+
+```{r}
+docvars(my_dfm,field = "training")=runif(nrow(sms_data))>.3
+```
+
+```{r}
+training_dfm = dfm_subset(my_dfm,training == TRUE)
+testing_dfm = dfm_subset(my_dfm,training == FALSE)
+```
+
+```{r}
+my_model = textmodel_nb(training_dfm,training_dfm$type,smooth = 1)
+```
+
+```{r}
+require(caret)
+```
+
+
+```{r}
+predictions = predict(my_model,testing_dfm)
+confusionMatrix(predictions , as.factor(testing_dfm$type))
+```
